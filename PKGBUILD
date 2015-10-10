@@ -5,7 +5,7 @@
 
 pkgname=broadcom-wl-bede-lts
 pkgver=6.30.223.248
-pkgrel=2
+pkgrel=3
 _pkgdesc='Broadcom 802.11abgn hybrid Linux networking device driver for linux-bede-lts'
 _extramodules=4.1-BEDE-LTS-external
 pkgdesc="${_pkgdesc}"
@@ -50,7 +50,7 @@ package() {
 	# makepkg does not do this automatically for this pkg so do it here
 	gzip -9 "${pkgdir}/usr/lib/modules/${_extramodules}/wl.ko"
 	install -Dm644 lib/LICENSE.txt "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-	install -Dm644 modprobe.d "${pkgdir}/usr/lib/modprobe.d/broadcom-wl_ck.conf"
+	install -Dm644 modprobe.d "${pkgdir}/usr/lib/modprobe.d/broadcom-wl-bede-lts.conf"
 
     sed -i -e "s/EXTRAMODULES=.*/EXTRAMODULES='$_extramodules'/" "$startdir/broadcom-wl-bede-lts.install"
 }
