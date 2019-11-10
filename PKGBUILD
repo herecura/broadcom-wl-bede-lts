@@ -5,7 +5,7 @@
 
 pkgname=broadcom-wl-bede-lts
 pkgver=6.30.223.271
-pkgrel=269
+pkgrel=270
 _pkgdesc='Broadcom 802.11abgn hybrid Linux networking device driver for linux-bede-lts'
 _extramodules=4.19-BEDE-LTS-external
 _current_linux_version=4.19.83
@@ -60,8 +60,7 @@ prepare() {
 
 
 build() {
-	_kernver="$(cat /usr/lib/modules/${_extramodules}/version)"
-	make -C /usr/lib/modules/"${_kernver}"/build M=$(pwd)
+	make -C /usr/src/linux-bede-lts M=$(pwd)
 }
 
 package() {
@@ -70,7 +69,8 @@ package() {
         "linux-bede-lts<$_next_linux_version"
     )
 
-	install -Dm644 wl.ko "${pkgdir}/usr/lib/modules/${_extramodules}/wl.ko"
+    local extradir="/usr/lib/modules/$(</usr/src/linux-bede-lts/version)/extramodules"
+    install -Dm644 wl.ko "${pkgdir}${extradir}/$pkgname/wl.ko"
     find "${pkgdir}" -name '*.ko' -exec xz {} +
 
 	install -Dm644 lib/LICENSE.txt "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
