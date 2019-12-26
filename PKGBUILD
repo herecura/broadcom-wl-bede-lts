@@ -5,11 +5,11 @@
 
 pkgname=broadcom-wl-bede-lts
 pkgver=6.30.223.271
-pkgrel=278
+pkgrel=279
 _pkgdesc='Broadcom 802.11abgn hybrid Linux networking device driver for linux-bede-lts'
-_extramodules=4.19-BEDE-LTS-external
-_current_linux_version=4.19.91
-_next_linux_version=4.20
+_extramodules=5.4-BEDE-LTS-external
+_current_linux_version=5.4.6
+_next_linux_version=5.5
 pkgdesc="${_pkgdesc}"
 arch=('x86_64')
 url='http://www.broadcom.com/support/802.11/linux_sta.php'
@@ -56,6 +56,10 @@ prepare() {
     patch -p1 -i "$srcdir/008-linux415.patch"
 
 	sed -e "/BRCM_WLAN_IFNAME/s:eth:wlan:" -i src/wl/sys/wl_linux.c
+
+    # linux 5.1
+    sed -e 's/get_ds()/KERNEL_DS/g' -i src/wl/sys/wl_iw.c
+    sed -e 's/get_ds()/KERNEL_DS/g' -i src/wl/sys/wl_cfg80211_hybrid.c
 }
 
 
