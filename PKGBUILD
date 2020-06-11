@@ -3,12 +3,13 @@
 # Contributor: Austin ( doorknob60 [at] gmail [dot] com )
 # Contributor: Gaetan Bisson <bisson@archlinux.org>
 
-pkgname=broadcom-wl-bede-lts
+_pkgname=broadcom-wl
+pkgname=$_pkgname-bede-lts
 pkgver=6.30.223.271
-pkgrel=314
+pkgrel=322
 _pkgdesc='Broadcom 802.11abgn hybrid Linux networking device driver for linux-bede-lts'
 _extramodules=5.4-BEDE-LTS-external
-_current_linux_version=5.4.40
+_current_linux_version=5.4.46
 _next_linux_version=5.5
 pkgdesc="${_pkgdesc}"
 arch=('x86_64')
@@ -19,53 +20,10 @@ makedepends=(
     "linux-bede-lts-headers>=$_current_linux_version"
     "linux-bede-lts<$_next_linux_version"
     "linux-bede-lts-headers<$_next_linux_version"
+    "broadcom-wl-dkms>=$pkgver"
 )
-source=(
-    'modprobe.d'
-    '001-null-pointer-fix.patch'
-    '002-rdtscl.patch'
-    '003-linux47.patch'
-    '004-linux48.patch'
-    '005-debian-fix-kernel-warnings.patch'
-    '006-linux411.patch'
-    '007-linux412.patch'
-    '008-linux415.patch'
-)
-source_x86_64=(
-    "http://www.broadcom.com/docs/linux_sta/hybrid-v35_64-nodebug-pcoem-${pkgver//./_}.tar.gz"
-)
-sha256sums=('b4aca51ac5ed20cb79057437be7baf3650563b7a9d5efc515f0b9b34fbb9dc32'
-            '32e505a651fdb9fd5e4870a9d6de21dd703dead768c2b3340a2ca46671a5852f'
-            '4ea03f102248beb8963ad00bd3e36e67519a90fa39244db065e74038c98360dd'
-            '30ce1d5e8bf78aee487d0f3ac76756e1060777f70ed1a9cf95215c3a52cfbe2e'
-            '833af3b209d6a101d9094db16480bda2ad9a85797059b0ae0b13235ad3818e9c'
-            '2306a59f9e7413f35a0669346dcd05ef86fa37c23b566dceb0c6dbee67e4d299'
-            '977b1663ce055860b0b60e7cf882658f507d81909f935d1a8b785896f64176e8'
-            'a3d13e8abb96ad440dbfae29acae82d31d1ced2ea62052f1efb2c3c4add347ce'
-            '08c24157cf3b93b60e67e600d1d90223447361990df09acfb00281d79813d167')
-sha256sums_x86_64=('5f79774d5beec8f7636b59c0fb07a03108eef1e3fd3245638b20858c714144be')
-
-prepare() {
-    patch -p1 -i "$srcdir/001-null-pointer-fix.patch"
-    patch -p1 -i "$srcdir/002-rdtscl.patch"
-    patch -p1 -i "$srcdir/003-linux47.patch"
-    patch -p1 -i "$srcdir/004-linux48.patch"
-    patch -p1 -i "$srcdir/005-debian-fix-kernel-warnings.patch"
-    patch -p1 -i "$srcdir/006-linux411.patch"
-    patch -p1 -i "$srcdir/007-linux412.patch"
-    patch -p1 -i "$srcdir/008-linux415.patch"
-
-	sed -e "/BRCM_WLAN_IFNAME/s:eth:wlan:" -i src/wl/sys/wl_linux.c
-
-    # linux 5.1
-    sed -e 's/get_ds()/KERNEL_DS/g' -i src/wl/sys/wl_iw.c
-    sed -e 's/get_ds()/KERNEL_DS/g' -i src/wl/sys/wl_cfg80211_hybrid.c
-}
-
-
-build() {
-	make -C /usr/src/linux-bede-lts M=$(pwd)
-}
+source=('modprobe.d')
+sha512sums=('83502abcd1dbc04884b901cd09ffdbfe81131bcbc004d4d3751be53bc7e4416294ef501cd84e91457c10bf4f7c804841c80fbcf0aeda7f2183765cb2368995b5')
 
 package() {
 	depends=(
@@ -73,10 +31,12 @@ package() {
         "linux-bede-lts<$_next_linux_version"
     )
 
-    local extradir="/usr/lib/modules/$(</usr/src/linux-bede-lts/version)/extramodules"
-    install -Dm644 wl.ko "${pkgdir}${extradir}/$pkgname/wl.ko"
-    find "${pkgdir}" -name '*.ko' -exec xz {} +
+    local kernver=$(</usr/src/linux-bede-lts/version)
+    local extradir="/usr/lib/modules/$kernver/extramodules"
+    install -dm755 "${pkgdir}${extradir}/$_pkgname"
+    cp -a "/var/lib/dkms/$_pkgname/kernel-$kernver-x86_64/module"/* \
+        "${pkgdir}${extradir}/$_pkgname/"
 
-	install -Dm644 lib/LICENSE.txt "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-	install -Dm644 modprobe.d "${pkgdir}/usr/lib/modprobe.d/broadcom-wl-bede-lts.conf"
+	install -Dm644 "${srcdir}/modprobe.d" \
+        "${pkgdir}/usr/lib/modprobe.d/broadcom-wl-bede.conf"
 }
